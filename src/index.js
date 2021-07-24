@@ -1,7 +1,9 @@
 import './css/styles.css';
-import API from './js/fetchImages';
+import ImagesApiService from './js/apiService';
 import Notiflix from 'notiflix';
 import cardsImagesTpl from './templates/cardImage.hbs';
+
+const imagesApiService = new ImagesApiService();
 
 const refs = {
   searchForm: document.querySelector('.search-form'),
@@ -11,12 +13,23 @@ const refs = {
 refs.searchForm.addEventListener('submit', onSearch);
 async function onSearch(e) {
   e.preventDefault();
-  const name = e.currentTarget.elements.searchQuery.value;
-  console.log(name);
+  clearimagesContainer();
+  const searchValue = e.currentTarget.elements.searchQuery.value;
+  imagesApiService.query = searchValue.trim();
+  imagesApiService.resetPage();
+  if (imagesApiService.query === '') {
+    return Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.',
+    );
+  }
   try {
-    const cards = await API.fetchImages(name);
+    const cards = await imagesApiService.fetchImages();
+    const totalHits = cards.totalHits;
+
+    if (imagesApiService.page === 1) {
+      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+    }
     refs.button.classList.remove('is-hidden');
-    clearimagesContainer();
     renderCardsimages(cards);
   } catch (error) {
     console.log(error);
