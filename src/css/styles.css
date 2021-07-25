@@ -52,6 +52,7 @@ img {
 button.is-hidden {
   display: none;
 }
+
 .gallery {
   margin: 20px auto;
   display: grid;
