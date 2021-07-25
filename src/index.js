@@ -1,10 +1,13 @@
 import './css/styles.css';
+import 'simplelightbox/dist/simple-lightbox.css';
 import ImagesApiService from './js/apiService';
 import LoadMoreBtn from './js/LoadMoreBtn';
 import Notiflix from 'notiflix';
 import cardsImagesTpl from './templates/cardImage.hbs';
+import SimpleLightbox from 'simplelightbox';
 
 const imagesApiService = new ImagesApiService();
+let lightbox = new SimpleLightbox('.gallery a');
 const loadMoreBtn = new LoadMoreBtn({
   selector: '[data-action="load-more"]',
   hidden: true,
@@ -19,7 +22,6 @@ loadMoreBtn.refs.button.addEventListener('click', fetchImages);
 
 async function onSearch(e) {
   e.preventDefault();
-
   loadMoreBtn.hide();
   const searchValue = e.currentTarget.elements.searchQuery.value;
   imagesApiService.query = searchValue.trim();
@@ -33,18 +35,20 @@ async function onSearch(e) {
 
   fetchImages();
 }
+
 async function fetchImages() {
   try {
     Notiflix.Loading.hourglass('Loading...');
     const cards = await imagesApiService.fetchImages();
     Notiflix.Loading.remove();
     const totalHits = cards.totalHits;
-    const currentPage = imagesApiService.page;
-    const perPage = imagesApiService.per_page;
-    if (imagesApiService.page === 1) {
+    const currentPage = imagesApiService.options.params.page;
+    const perPage = imagesApiService.options.params.per_page;
+    if (currentPage === 1) {
       Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
     }
     renderCardsimages(cards);
+    lightbox.refresh();
     checkImagesCount(totalHits, currentPage, perPage);
     imagesApiService.incrementPage();
   } catch (error) {
@@ -56,10 +60,12 @@ async function fetchImages() {
     );
   }
 }
+
 function renderCardsimages(cards) {
   const markup = cardsImagesTpl(cards);
   refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
 }
+
 function clearimagesContainer() {
   refs.imagesContainer.innerHTML = '';
 }
