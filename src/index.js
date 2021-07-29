@@ -50,6 +50,7 @@ async function fetchImages() {
     renderCardsimages(cards);
     lightbox.refresh();
     checkImagesCount(totalHits, currentPage, perPage);
+    smoothScroll();
     imagesApiService.incrementPage();
   } catch (error) {
     console.log(error);
@@ -76,5 +77,18 @@ function checkImagesCount(total, current, per) {
     loadMoreBtn.hide();
   } else {
     loadMoreBtn.show();
+  }
+}
+
+function smoothScroll() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  if (imagesApiService.options.params.page !== 1) {
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
   }
 }
